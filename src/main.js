@@ -12,20 +12,20 @@ const params = new URLSearchParams(location.search);
 const DEFAULTS = {
   mask: true, headOnly: false, bg: 'video',          // output
   maskW: 1.3, maskH: 1.3, offX: 0, offY: 0,          // mask size (x face) and centering
-  mirror: true, swapEyes: false, mouthGain: 1, headGain: 1, showCam: false, // tracking
+  mirror: true, swapEyes: false, mouthGain: 1.6, exprGain: 1.5, headGain: 1, showCam: false, // tracking
   base: [0, 0, 0, 0, 0],                             // neutral pose: yaw, pitch, roll, x, y
 };
 const BOOLS = ['mask', 'headOnly', 'mirror', 'swapEyes', 'showCam'];
-const NUMS = ['maskW', 'maskH', 'offX', 'offY', 'mouthGain', 'headGain'];
+const NUMS = ['maskW', 'maskH', 'offX', 'offY', 'mouthGain', 'exprGain', 'headGain'];
 
 let settings = { ...DEFAULTS };
-try { settings = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('puppet-settings') || '{}') }; } catch {}
+try { settings = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('puppet-settings-v2') || '{}') }; } catch {}
 for (const k of BOOLS) if (params.has(k)) settings[k] = params.get(k) === '1';
 for (const k of NUMS) if (params.has(k)) settings[k] = parseFloat(params.get(k));
 if (params.has('bg')) settings.bg = params.get('bg');
 if (params.has('base')) settings.base = params.get('base').split(',').map(Number);
 
-const save = () => { try { localStorage.setItem('puppet-settings', JSON.stringify(settings)); } catch {} };
+const save = () => { try { localStorage.setItem('puppet-settings-v2', JSON.stringify(settings)); } catch {} };
 
 // ---- modes: calibrate (UI + guides) vs present (canvas only) ----
 function setPresenting(on) {
@@ -76,14 +76,15 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const above = (v, t, active, h = 0.04) => v > (active ? t - h : t + h);
 
 // ---- state ----
-const smooth = { jaw: 0, funnel: 0, pucker: 0, smile: 0, blinkL: 0, blinkR: 0, browUp: 0, browDown: 0,
+const smooth = { jaw: 0, funnel: 0, pucker: 0, smile: 0, frown: 0, browRaiseL: 0, browRaiseR: 0, browDownL: 0, browDownR: 0, blinkL: 0, blinkR: 0,
                  lookX: 0, lookY: 0, yaw: 0, pitch: 0, roll: 0, x: 0, y: 0,
                  pcx: 0, pcy: 0, pw: 1, ph: 1, proll: 0 };
 const puppetState = { visible: true, headOnly: false, blinkL: false, blinkR: false, mouth: 'closed',
-                      brows: 'neutral', gaze: { x: 0, y: 0 }, yaw: 0, pitch: 0, roll: 0, dx: 0, dy: 0 };
+                      brows: 'neutral', browL: 'neutral', browR: 'neutral', splitBrows: true, gaze: { x: 0, y: 0 }, yaw: 0, pitch: 0, roll: 0, dx: 0, dy: 0 };
 let lastRaw = null;
 let lastSeen = 0;
 let placeInit = false;
+let splitBrows = true;   // set at boot from which brow sprites exist
 
 function ema(key, target, a) { smooth[key] = lerp(smooth[key], target, a); return smooth[key]; }
 
@@ -99,11 +100,17 @@ function update(raw) {
   const jaw = ema('jaw', Math.min(1, (b.jawOpen ?? 0) * settings.mouthGain), 0.6);
   const funnel = ema('funnel', b.mouthFunnel ?? 0, 0.5);
   const pucker = ema('pucker', b.mouthPucker ?? 0, 0.5);
-  const smile = ema('smile', ((b.mouthSmileLeft ?? 0) + (b.mouthSmileRight ?? 0)) / 2, 0.5);
+  const eg = settings.exprGain;
+  const smile = ema('smile', Math.min(1, eg * ((b.mouthSmileLeft ?? 0) + (b.mouthSmileRight ?? 0)) / 2), 0.5);
+  const frown = ema('frown', Math.min(1, eg * ((b.mouthFrownLeft ?? 0) + (b.mouthFrownRight ?? 0)) / 2), 0.5);
   const bl = ema('blinkL', b[swap ? 'eyeBlinkRight' : 'eyeBlinkLeft'] ?? 0, 0.7);
   const br = ema('blinkR', b[swap ? 'eyeBlinkLeft' : 'eyeBlinkRight'] ?? 0, 0.7);
-  const browUp = ema('browUp', Math.max(b.browInnerUp ?? 0, ((b.browOuterUpLeft ?? 0) + (b.browOuterUpRight ?? 0)) / 2), 0.5);
-  const browDown = ema('browDown', ((b.browDownLeft ?? 0) + (b.browDownRight ?? 0)) / 2, 0.5);
+  // Brows per side so one can cock alone. Inner-up is shared by both brows, so it only counts half.
+  const sideL = swap ? 'Right' : 'Left', sideR = swap ? 'Left' : 'Right';
+  const raise = side => Math.min(1, eg * ((b['browOuterUp' + side] ?? 0) + (b.browInnerUp ?? 0) * 0.5));
+  const down = side => Math.min(1, eg * (b['browDown' + side] ?? 0));
+  const raiseL = ema('browRaiseL', raise(sideL), 0.5), raiseR = ema('browRaiseR', raise(sideR), 0.5);
+  const downL = ema('browDownL', down(sideL), 0.5), downR = ema('browDownR', down(sideR), 0.5);
   const lookX = ema('lookX', ((b.eyeLookOutLeft ?? 0) + (b.eyeLookInRight ?? 0) - (b.eyeLookInLeft ?? 0) - (b.eyeLookOutRight ?? 0)) / 2, 0.4);
   const lookY = ema('lookY', ((b.eyeLookDownLeft ?? 0) + (b.eyeLookDownRight ?? 0) - (b.eyeLookUpLeft ?? 0) - (b.eyeLookUpRight ?? 0)) / 2, 0.4);
 
@@ -112,16 +119,24 @@ function update(raw) {
   s.blinkL = above(bl, 0.5, s.blinkL);
   s.blinkR = above(br, 0.5, s.blinkR);
 
+  // Thresholds are deliberately low: ordinary speech only opens jawOpen to ~0.1-0.4.
   const was = s.mouth;
-  if (above(funnel + pucker, 0.5, was === 'o') && jaw > 0.08) s.mouth = 'o';
-  else if (above(jaw, 0.55, was === 'wide')) s.mouth = 'wide';
-  else if (above(jaw, 0.25, was === 'mid' || was === 'wide')) s.mouth = 'mid';
-  else if (above(jaw, 0.08, was !== 'closed' && was !== 'smile', 0.02)) s.mouth = 'small';
-  else if (above(smile, 0.45, was === 'smile')) s.mouth = 'smile';
+  const calm = jaw < 0.1;   // closed-ish mouth, so smile/frown shapes apply
+  if (above(funnel + pucker, 0.35, was === 'o') && jaw > 0.04) s.mouth = 'o';
+  else if (above(jaw, 0.32, was === 'wide')) s.mouth = 'wide';
+  else if (above(jaw, 0.14, was === 'mid' || was === 'wide', 0.02)) s.mouth = 'mid';
+  else if (calm && above(smile, 0.3, was === 'smile')) s.mouth = 'smile';
+  else if (calm && above(frown, 0.2, was === 'frown')) s.mouth = 'frown';
+  else if (above(jaw, 0.045, was === 'small', 0.015)) s.mouth = 'small';
   else s.mouth = 'closed';
 
-  s.brows = above(browDown, 0.45, s.brows === 'furrowed') ? 'furrowed'
-          : above(browUp, 0.4, s.brows === 'raised') ? 'raised' : 'neutral';
+  const browState = (rz, dn, cur) => above(dn, 0.3, cur === 'furrowed') ? 'furrowed'
+                                   : above(rz, 0.25, cur === 'raised') ? 'raised' : 'neutral';
+  s.browL = browState(raiseL, downL, s.browL);
+  s.browR = browState(raiseR, downR, s.browR);
+  const rank = { neutral: 0, raised: 1, furrowed: 2 };
+  s.brows = rank[s.browL] >= rank[s.browR] ? s.browL : s.browR;   // combined-sprite fallback
+  s.splitBrows = splitBrows;
 
   s.gaze.x = lookX * m; s.gaze.y = lookY;
 
@@ -167,7 +182,8 @@ function computePlace(raw, W, H) {
 const status = $('status');
 async function boot() {
   status.textContent = 'Loading sprites…';
-  const { sprites, missing, headBox: hb } = await loadSprites();
+  const { sprites, missing, headBox: hb, real } = await loadSprites();
+  splitBrows = !real.has('brows_neutral') || real.has('brow_l_neutral');
   headBox = hb;
   const puppet = createPuppet($('puppet'), sprites, headBox);
   puppet.resize(CANVAS.w, CANVAS.h);

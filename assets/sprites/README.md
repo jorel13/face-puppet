@@ -26,9 +26,11 @@ Draw the head at any size or position. The app measures the opaque area of `head
 | File | What it is |
 |---|---|
 | `pupil_l.png`, `pupil_r.png` | Pupil/iris **only**, centred in the eye. They slide around to follow your gaze, so draw the eye whites in `eye_*_open` **without** the pupil. Keep the sliding range (about 14 px) inside the eye shape. |
-| `brows_neutral.png`, `brows_raised.png`, `brows_furrowed.png` | Both eyebrows in one image per state. |
+| `brow_l_neutral.png`, `brow_l_raised.png`, `brow_l_furrowed.png` and the same three for `brow_r_*` | **One** eyebrow per file (screen left / right). Separate sides let one brow rise on its own (the cocked eyebrow). Furrowed = angled down toward the nose. |
+| *(fallback)* `brows_neutral.png`, `brows_raised.png`, `brows_furrowed.png` | Both brows in one image per state. Used only if you have no `brow_l_*` files; both brows then move together. |
 | `mouth_o.png` | Rounded "oo/oh" mouth (shows when you pucker). |
 | `mouth_smile.png` | Closed-lip smile. |
+| `mouth_frown.png` | Closed-lip frown / sad mouth (corners down). |
 | `nose.png` | Nose (separate so it can shift more than the head when turning). |
 
 ## Tier 3: polish (optional)

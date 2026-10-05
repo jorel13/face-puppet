@@ -42,7 +42,8 @@
       <label class="row"><input type="checkbox" id="mirror"> Mirror movement</label>
       <label class="row"><input type="checkbox" id="swapEyes"> Swap left/right eyes</label>
       <label class="row"><input type="checkbox" id="showCam"> Show raw webcam</label>
-      <label>Mouth sensitivity <input type="range" id="mouthGain" min="0.5" max="2" step="0.05"></label>
+      <label>Mouth open sensitivity <input type="range" id="mouthGain" min="0.5" max="4" step="0.05"></label>
+      <label>Expression sensitivity (brows, smile, frown) <input type="range" id="exprGain" min="0.5" max="4" step="0.05"></label>
       <label>Head motion <input type="range" id="headGain" min="0" max="2" step="0.05"></label>
       <video id="preview" playsinline muted></video>
     </fieldset>

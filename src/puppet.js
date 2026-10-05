@@ -6,6 +6,7 @@ import { PLACEHOLDERS } from './placeholders.js';
 export async function loadSprites() {
   const sprites = new Map();
   const missing = [];
+  const real = new Set();
   await Promise.all(LAYERS.map(async ({ id }) => {
     const img = await new Promise(resolve => {
       const im = new Image();
@@ -13,14 +14,14 @@ export async function loadSprites() {
       im.onerror = () => resolve(null);
       im.src = `assets/sprites/${id}.png`;
     });
-    if (img) { sprites.set(id, img); return; }
+    if (img) { sprites.set(id, img); real.add(id); return; }
     missing.push(id);
     const c = document.createElement('canvas');
     c.width = CANVAS.w; c.height = CANVAS.h;
     PLACEHOLDERS[id]?.(c.getContext('2d'));
     sprites.set(id, c);
   }));
-  return { sprites, missing, headBox: measureHead(sprites.get('head')) };
+  return { sprites, missing, real, headBox: measureHead(sprites.get('head')) };
 }
 
 // Bounding box of the opaque pixels in head.png, so mask mode fits whatever head you drew.

@@ -15,6 +15,15 @@ function eyeOpen(ctx, p) { ellipse(ctx, p.x, p.y, 44, 52, '#fff'); stroke(ctx, 6
 function eyeClosed(ctx, p) { ctx.beginPath(); ctx.moveTo(p.x - 44, p.y); ctx.quadraticCurveTo(p.x, p.y + 22, p.x + 44, p.y); stroke(ctx, 8); }
 function pupil(ctx, p) { ellipse(ctx, p.x, p.y + 4, 22, 26, INK); }
 
+// One eyebrow. dir is +1 for the screen-left brow, -1 for the right, so 'furrowed' slants down toward the nose.
+function brow(ctx, x, state, dir) {
+  ctx.beginPath();
+  if (state === 'raised') { ctx.moveTo(x - 50, 340); ctx.quadraticCurveTo(x, 310, x + 50, 340); }
+  else if (state === 'furrowed') { ctx.moveTo(x - 50 * dir, 355); ctx.lineTo(x + 50 * dir, 385); }
+  else { ctx.moveTo(x - 50, 365); ctx.lineTo(x + 50, 365); }
+  stroke(ctx, 12);
+}
+
 export const PLACEHOLDERS = {
   body(ctx) { ctx.beginPath(); ctx.ellipse(512, 1010, 330, 230, 0, Math.PI, 0); ctx.fillStyle = '#6aa8e6'; ctx.fill(); stroke(ctx); },
   hair_back(ctx) { ellipse(ctx, 512, 440, 335, 370, '#7a4a2b'); },
@@ -37,6 +46,13 @@ export const PLACEHOLDERS = {
     ctx.beginPath(); ctx.moveTo(350, 355); ctx.lineTo(450, 385); stroke(ctx, 12);
     ctx.beginPath(); ctx.moveTo(674, 355); ctx.lineTo(574, 385); stroke(ctx, 12);
   },
+  brow_l_neutral: ctx => brow(ctx, 400, 'neutral', 1),
+  brow_l_raised: ctx => brow(ctx, 400, 'raised', 1),
+  brow_l_furrowed: ctx => brow(ctx, 400, 'furrowed', 1),
+  brow_r_neutral: ctx => brow(ctx, 624, 'neutral', -1),
+  brow_r_raised: ctx => brow(ctx, 624, 'raised', -1),
+  brow_r_furrowed: ctx => brow(ctx, 624, 'furrowed', -1),
+  mouth_frown(ctx) { ctx.beginPath(); ctx.moveTo(430, 675); ctx.quadraticCurveTo(512, 610, 594, 675); stroke(ctx, 8); },
   nose(ctx) { ctx.beginPath(); ctx.moveTo(512, 480); ctx.quadraticCurveTo(535, 540, 512, 552); stroke(ctx, 6); },
   mouth_closed(ctx) { ctx.beginPath(); ctx.moveTo(450, 650); ctx.lineTo(574, 650); stroke(ctx, 8); },
   mouth_small(ctx) { ellipse(ctx, 512, 652, 40, 14, '#7a2a2a'); stroke(ctx, 6); },
