@@ -10,16 +10,49 @@
   <main class="stage"><canvas id="puppet"></canvas></main>
 
   <aside class="panel">
-    <h1>Face Puppet</h1>
-    <video id="preview" playsinline muted></video>
-    <label><input type="checkbox" id="mirror"> Mirror movement</label>
-    <label><input type="checkbox" id="swapEyes"> Swap left/right eyes</label>
-    <label><input type="checkbox" id="showCam"> Show webcam preview</label>
-    <label>Mouth sensitivity <input type="range" id="mouthGain" min="0.5" max="2" step="0.05"></label>
-    <label>Head motion <input type="range" id="headGain" min="0" max="2" step="0.05"></label>
-    <button id="calibrate">Calibrate neutral pose (C)</button>
+    <h1>Face Puppet <small>calibration</small></h1>
+    <button id="present" class="primary">Start presenting</button>
+    <p class="hint">Presenting hides this panel. Press <kbd>Esc</kbd> or double-click the picture to come back.</p>
+
+    <fieldset>
+      <legend>Output</legend>
+      <label class="row"><input type="checkbox" id="mask"> Mask mode (head covers my face)</label>
+      <label class="row"><input type="checkbox" id="headOnly"> Head only (no neck/body)</label>
+      <label>Background
+        <select id="bg">
+          <option value="video">My webcam video</option>
+          <option value="transparent">Transparent</option>
+          <option value="green">Green screen</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Mask alignment</legend>
+      <label>Size <input type="range" id="maskScale" min="0.6" max="2.2" step="0.01"></label>
+      <label>Shift left / right <input type="range" id="offX" min="-0.5" max="0.5" step="0.01"></label>
+      <label>Shift up / down <input type="range" id="offY" min="-0.5" max="0.5" step="0.01"></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Tracking</legend>
+      <button id="calibrate">Set neutral pose (C)</button>
+      <label class="row"><input type="checkbox" id="mirror"> Mirror movement</label>
+      <label class="row"><input type="checkbox" id="swapEyes"> Swap left/right eyes</label>
+      <label class="row"><input type="checkbox" id="showCam"> Show raw webcam</label>
+      <label>Mouth sensitivity <input type="range" id="mouthGain" min="0.5" max="2" step="0.05"></label>
+      <label>Head motion <input type="range" id="headGain" min="0" max="2" step="0.05"></label>
+      <video id="preview" playsinline muted></video>
+    </fieldset>
+
+    <fieldset>
+      <legend>OBS</legend>
+      <p class="hint">Browser Source URL. Includes all settings above, since OBS doesn't share this browser's saved settings.</p>
+      <div class="row"><input id="obsUrl" readonly><button id="copyUrl">Copy</button></div>
+    </fieldset>
+
     <p id="status">Starting…</p>
-    <p class="hint">OBS: add a Browser Source for <code>http://localhost:8000/?clean&amp;bg=transparent</code></p>
   </aside>
 
   <script type="module" src="src/main.js"></script>

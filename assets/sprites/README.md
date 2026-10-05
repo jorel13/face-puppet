@@ -9,12 +9,12 @@ Left/right means **screen left/right** (the character's right eye is on screen-l
 
 Reference layout used by the placeholders (adjust freely, but keep every part aligned to the same canvas):
 eyes at about y=440 (x=400 and x=624), nose ~y=520, mouth ~y=650, neck base ~y=780.
-If your head sits elsewhere, tell me and I'll move the rotation pivot in `src/config.js`.
+The head's centre and size (`HEAD` in `src/config.js`, currently centre 512,490, 600 wide, 680 tall) is how mask mode fits the sprite onto your face. If your head is drawn elsewhere or at a different size, tell me and I'll update it (or edit it yourself).
 
 ## Tier 1: minimum (talks and blinks)
 | File | What it is |
 |---|---|
-| `head.png` | Head/face with **no** eyes, brows, nose or mouth drawn on it (skin, ears, outline). Include the neck so it doesn't detach when rotating. |
+| `head.png` | Head/face with **no** eyes, brows, nose or mouth drawn on it (skin, ears, outline). **No neck.** This is the part that covers your face in mask mode, so the shape should be a bit bigger than a real face. |
 | `eye_l_open.png`, `eye_r_open.png` | Open eye (white + iris/pupil if you are skipping separate pupils). |
 | `eye_l_closed.png`, `eye_r_closed.png` | Closed eye (lash line / lid). |
 | `mouth_closed.png` | Mouth at rest. |
@@ -32,11 +32,14 @@ If your head sits elsewhere, tell me and I'll move the rotation pivot in `src/co
 | `nose.png` | Nose (separate so it can shift more than the head when turning). |
 
 ## Tier 3: polish (optional)
+Hair and ears that stick out past the head are what make the mask hide your real face edges, so they're worth doing.
+
 | File | What it is |
 |---|---|
 | `hair_back.png` | Hair/hat/ears that sit **behind** the head. |
 | `hair_front.png` | Fringe/bangs/hat brim drawn **over** the face. |
-| `body.png` | Shoulders/torso, stays put while the head moves. |
+| `neck.png` | Neck, drawn behind the head. Hidden in head-only and mask mode. |
+| `body.png` | Shoulders/torso, stays put while the head moves. Hidden in head-only and mask mode. |
 | `cheeks.png` | Blush or freckles. |
 
 ## Tips

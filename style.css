@@ -1,22 +1,28 @@
 html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; }
 body { display: flex; background: #1e1e24; color: #eee; }
-.stage { flex: 1; display: flex; align-items: center; justify-content: center; min-width: 0;
+.stage { flex: 1; display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 0;
   background: repeating-conic-gradient(#2a2a32 0% 25%, #24242b 0% 50%) 50% / 24px 24px; }
-#puppet { max-width: 100%; max-height: 100vh; aspect-ratio: 1; }
+#puppet { max-width: 100%; max-height: 100vh; }
 
-.panel { width: 280px; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #2b2b33; box-sizing: border-box; }
+.panel { width: 300px; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #2b2b33;
+  box-sizing: border-box; overflow-y: auto; height: 100vh; }
 .panel h1 { font-size: 18px; margin: 0; }
+.panel h1 small { font-size: 12px; font-weight: normal; color: #aab; }
+.panel fieldset { border: 1px solid #44444f; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 10px; }
+.panel legend { font-size: 12px; color: #aab; padding: 0 4px; }
 .panel label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
-.panel label:has(input[type=checkbox]) { flex-direction: row; align-items: center; gap: 8px; }
-.panel button { padding: 8px; border-radius: 6px; border: 0; background: #5b7cfa; color: #fff; cursor: pointer; }
+.panel label.row, .panel div.row { flex-direction: row; align-items: center; gap: 8px; display: flex; }
+.panel button { padding: 8px; border-radius: 6px; border: 0; background: #444452; color: #fff; cursor: pointer; }
+.panel button.primary { background: #5b7cfa; font-weight: 600; }
+.panel select, .panel input[readonly] { min-width: 0; flex: 1; padding: 4px; border-radius: 4px; border: 1px solid #555; background: #1e1e24; color: #eee; }
 #preview { width: 100%; border-radius: 6px; transform: scaleX(-1); background: #000; }
 #status, .hint { font-size: 12px; color: #aab; margin: 0; word-break: break-word; }
-code { font-size: 11px; }
+kbd { background: #444452; border-radius: 3px; padding: 0 4px; }
 
-/* OBS / clean output: no UI, canvas fills the window, background chosen via ?bg= */
+/* Presenting mode (also ?present in the URL / OBS): canvas only, background chosen via bg */
 body.clean { background: transparent; }
 body.clean .panel { display: none; }
 body.clean .stage { background: none; }
-body.clean #puppet { width: 100vmin; height: 100vmin; max-height: none; }
+body.clean #puppet { width: 100vw; height: 100vh; max-width: none; max-height: none; object-fit: contain; }
 body.clean[data-bg="green"] { background: #00ff00; }
 body.clean[data-bg="dark"] { background: #111; }

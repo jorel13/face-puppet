@@ -1,4 +1,4 @@
-import { CANVAS, PIVOT, PARALLAX, GAZE_PX, LAYERS } from './config.js';
+import { CANVAS, HEAD, PIVOT, PARALLAX, GAZE_PX, LAYERS } from './config.js';
 import { PLACEHOLDERS } from './placeholders.js';
 
 // Loads every sprite PNG; a missing file falls back to its procedural placeholder
@@ -24,28 +24,72 @@ export async function loadSprites() {
 }
 
 export function createPuppet(canvas, sprites) {
-  canvas.width = CANVAS.w;
-  canvas.height = CANVAS.h;
   const ctx = canvas.getContext('2d');
 
-  // state: { blinkL, blinkR, mouth, brows, gaze:{x,y}, yaw, pitch, roll (radians), dx, dy (px) }
-  function draw(s) {
-    ctx.clearRect(0, 0, CANVAS.w, CANVAS.h);
-    for (const layer of LAYERS) {
-      if (!layer.show(s)) continue;
-      const img = sprites.get(layer.id);
-      if (!img) continue;
+  function resize(w, h) {
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+  }
+
+  // state: { visible, headOnly, blinkL, blinkR, mouth, brows, gaze:{x,y}, yaw, pitch, roll, dx, dy }
+  // opts:  { video, mirror, place, guide }
+  //   video  - element drawn as the background (mirrored if opts.mirror)
+  //   place  - { cx, cy, scale, roll } puts the head on the face (mask mode); null = centred avatar
+  //   guide  - same shape, plus w/h; draws a calibration outline
+  function draw(s, { video = null, mirror = false, place = null, guide = null } = {}) {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    if (video && video.readyState >= 2) {
       ctx.save();
-      if (layer.rig) {
-        ctx.translate(PIVOT.x + s.dx, PIVOT.y + s.dy);
-        ctx.rotate(s.roll);
-        ctx.translate(-PIVOT.x, -PIVOT.y);
-        ctx.translate(s.yaw * PARALLAX.x * layer.depth, s.pitch * PARALLAX.y * layer.depth);
+      if (mirror) { ctx.translate(W, 0); ctx.scale(-1, 1); }
+      ctx.drawImage(video, 0, 0, W, H);
+      ctx.restore();
+    }
+
+    if (s.visible) {
+      ctx.save();
+      if (place) {
+        ctx.translate(place.cx, place.cy);
+        ctx.rotate(place.roll);
+        ctx.scale(place.scale, place.scale);
+        ctx.translate(-HEAD.cx, -HEAD.cy);
+      } else {
+        const sc = H / CANVAS.h;
+        ctx.translate((W - CANVAS.w * sc) / 2, 0);
+        ctx.scale(sc, sc);
       }
-      if (layer.gaze) ctx.translate(s.gaze.x * GAZE_PX.x, s.gaze.y * GAZE_PX.y);
-      ctx.drawImage(img, 0, 0);
+      for (const layer of LAYERS) {
+        if (!layer.show(s)) continue;
+        const img = sprites.get(layer.id);
+        if (!img) continue;
+        ctx.save();
+        if (layer.rig) {
+          if (!place) {                       // avatar mode: roll about the neck, follow head position
+            ctx.translate(PIVOT.x + s.dx, PIVOT.y + s.dy);
+            ctx.rotate(s.roll);
+            ctx.translate(-PIVOT.x, -PIVOT.y);
+          }
+          ctx.translate(s.yaw * PARALLAX.x * layer.depth, s.pitch * PARALLAX.y * layer.depth);
+        }
+        if (layer.gaze) ctx.translate(s.gaze.x * GAZE_PX.x, s.gaze.y * GAZE_PX.y);
+        ctx.drawImage(img, 0, 0);
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+
+    if (guide) {                              // calibration aid: the face box the tracker found
+      ctx.save();
+      ctx.translate(guide.cx, guide.cy);
+      ctx.rotate(guide.roll);
+      ctx.strokeStyle = '#38ff7a';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 6]);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, guide.w / 2, guide.h / 2, 0, 0, Math.PI * 2);
+      ctx.moveTo(-10, 0); ctx.lineTo(10, 0); ctx.moveTo(0, -10); ctx.lineTo(0, 10);
+      ctx.stroke();
       ctx.restore();
     }
   }
-  return { draw };
+  return { draw, resize };
 }

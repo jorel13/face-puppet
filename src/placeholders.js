@@ -18,10 +18,8 @@ function pupil(ctx, p) { ellipse(ctx, p.x, p.y + 4, 22, 26, INK); }
 export const PLACEHOLDERS = {
   body(ctx) { ctx.beginPath(); ctx.ellipse(512, 1010, 330, 230, 0, Math.PI, 0); ctx.fillStyle = '#6aa8e6'; ctx.fill(); stroke(ctx); },
   hair_back(ctx) { ellipse(ctx, 512, 440, 335, 370, '#7a4a2b'); },
-  head(ctx) {
-    ellipse(ctx, 512, 880, 60, 110, SKIN); stroke(ctx); // neck
-    ellipse(ctx, 512, 490, 300, 340, SKIN); stroke(ctx);
-  },
+  neck(ctx) { ellipse(ctx, 512, 880, 60, 110, SKIN); stroke(ctx); },
+  head(ctx) { ellipse(ctx, 512, 490, 300, 340, SKIN); stroke(ctx); },
   cheeks(ctx) { ellipse(ctx, 330, 560, 50, 28, 'rgba(255,110,110,0.35)'); ellipse(ctx, 694, 560, 50, 28, 'rgba(255,110,110,0.35)'); },
   eye_l_open: ctx => eyeOpen(ctx, EYE_L),
   eye_r_open: ctx => eyeOpen(ctx, EYE_R),

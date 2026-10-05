@@ -26,8 +26,11 @@ export async function createTracker(video) {
 
     // Column-major 4x4. Pull Euler angles + translation out of it.
     const m = res.facialTransformationMatrixes[0].data;
+    const lm = res.faceLandmarks[0];
     last = {
       blend,
+      // Normalised (0-1) landmarks used to place the mask: cheek edges, forehead top, chin.
+      face: { l: lm[234], r: lm[454], top: lm[10], chin: lm[152] },
       pitch: Math.asin(Math.max(-1, Math.min(1, -m[9]))),
       yaw: Math.atan2(m[8], m[10]),
       roll: Math.atan2(m[1], m[5]),

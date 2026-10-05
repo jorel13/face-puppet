@@ -2,6 +2,10 @@
 // background, with the part already positioned where it belongs. No per-part offsets needed.
 export const CANVAS = { w: 1024, h: 1024 };
 
+// Where the head sits in sprite space. Mask mode scales/rotates the sprite about this point so it
+// lands on your detected face. cx/cy = centre of the head, w/h = its width/height.
+export const HEAD = { cx: 512, cy: 490, w: 600, h: 680 };
+
 // Point the head rotates (rolls) around: roughly the base of the neck.
 export const PIVOT = { x: 512, y: 780 };
 
@@ -15,8 +19,9 @@ export const GAZE_PX = { x: 14, y: 10 };
 // `depth` is the parallax multiplier (bigger = moves more = looks closer to the camera).
 // `show` decides whether the layer is drawn given the current puppet state.
 export const LAYERS = [
-  { id: 'body',          rig: false, depth: 0,   show: () => true },
+  { id: 'body',          rig: false, depth: 0,   show: s => !s.headOnly },
   { id: 'hair_back',     rig: true,  depth: 0.2, show: () => true },
+  { id: 'neck',          rig: true,  depth: 0.3, show: s => !s.headOnly },
   { id: 'head',          rig: true,  depth: 0.5, show: () => true },
   { id: 'cheeks',        rig: true,  depth: 0.7, show: () => true },
   { id: 'eye_l_open',    rig: true,  depth: 0.8, show: s => !s.blinkL },
