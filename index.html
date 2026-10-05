@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Face Puppet</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-bg="transparent">
+  <main class="stage"><canvas id="puppet"></canvas></main>
+
+  <aside class="panel">
+    <h1>Face Puppet</h1>
+    <video id="preview" playsinline muted></video>
+    <label><input type="checkbox" id="mirror"> Mirror movement</label>
+    <label><input type="checkbox" id="swapEyes"> Swap left/right eyes</label>
+    <label><input type="checkbox" id="showCam"> Show webcam preview</label>
+    <label>Mouth sensitivity <input type="range" id="mouthGain" min="0.5" max="2" step="0.05"></label>
+    <label>Head motion <input type="range" id="headGain" min="0" max="2" step="0.05"></label>
+    <button id="calibrate">Calibrate neutral pose (C)</button>
+    <p id="status">Starting…</p>
+    <p class="hint">OBS: add a Browser Source for <code>http://localhost:8000/?clean&amp;bg=transparent</code></p>
+  </aside>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
