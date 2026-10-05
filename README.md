@@ -34,10 +34,7 @@ It needs `localhost` (not `file://`) for the camera and ES modules.
 
 ## Use in OBS
 
-1. In calibration, click **Copy** next to the OBS URL. It contains all your settings and your calibrated neutral pose, because OBS has its own storage and can't read this browser's.
-2. In OBS add a **Browser** source with that URL, sized to your camera resolution (e.g. 1280 x 720).
-3. If OBS's browser source can't get camera access, open the same URL in Chrome and capture that window with **Window Capture** (use `bg=green` plus a Chroma Key filter if you want no video behind the head).
-4. For Zoom/Meet/Discord, click **Start Virtual Camera** in OBS.
+OBS's Browser source can't access the webcam, so use **Window Capture** on a Chrome window in presenting mode. Step by step in the [User guide](USER_GUIDE.md).
 
 ## Art
 

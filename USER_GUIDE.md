@@ -35,26 +35,31 @@ The page opens in **calibration mode**: control panel on the left, picture on th
 
 Your settings are saved in this browser automatically.
 
-## 3. Add it to OBS
+## 3. Add it to OBS (Window Capture)
 
-1. In the calibration panel, find **OBS** at the bottom and click **Copy**. This URL contains **all** your settings and your neutral pose. (OBS keeps its own storage and can't see the settings saved in Chrome, so always copy the URL fresh after changing settings.)
-2. In OBS, under **Sources**, click **+** and choose **Browser**. Name it, e.g. "Face Puppet".
-3. Paste the URL into **URL**.
-4. Set **Width** and **Height** to match your camera, usually **1280 x 720** (or 1920 x 1080). In mask or video mode the picture is the camera's shape, so a mismatch will letterbox it.
-5. Click OK. The puppet should appear in the preview.
+OBS's built-in Browser source blocks webcam access (it shows `NotAllowedError`), so the reliable method is to show the page in Chrome and have OBS capture that window.
 
-**Camera access in OBS:** the Browser source needs to open your webcam itself, and most webcams can only be used by one app at a time.
-- **Close the Chrome calibration tab** (and any other app using the webcam, like Zoom or the Windows Camera app) before OBS starts the source. Then right-click the source and choose **Refresh cache of current page**.
-- If it still fails, a **red message at the bottom of the picture** says why. `NotReadableError` means the camera is busy. `NotAllowedError` means OBS's browser is blocking camera access; use the fallback below.
-- If you have several cameras, pick the right one in the **Camera** dropdown during calibration, then copy the OBS URL again (the URL then includes the camera name).
+1. Run `start.bat` and open `http://localhost:8000/` in **Chrome**. Calibrate (step 2).
+2. Click **Start presenting**. The panel disappears and only the picture remains.
+3. Make the window show only the picture: press **F11** for fullscreen, or resize the window so the picture fills it.
+4. In OBS, under **Sources**, click **+** and choose **Window Capture**.
+   - **Window**: pick the Chrome window (`[chrome.exe]: Face Puppet`).
+   - **Capture Method**: *Windows 10 (1903 and up)* if offered.
+   - Turn **off** *Capture Cursor*.
+5. Size and position the source on your OBS canvas. The capture is the camera's shape (16:9 for most webcams), so it should fit a 16:9 canvas with no cropping.
+6. Choose your background in calibration beforehand:
+   - **My webcam video**: nothing more to do. You with the head over your face.
+   - **Green screen**: right-click the source, **Filters**, **+**, **Chroma Key**, then pick green. Put other sources behind it.
 
-### Fallback: capture the Chrome window instead
+**Tips**
+- Keep the Chrome window open and **not minimised** (a minimised window captures as black). It can sit behind other windows or on a second monitor.
+- Fullscreen on a second monitor is ideal, so you can keep working on your main screen.
+- To change settings later: press **Esc** in the Chrome window to return to calibration, adjust, then click **Start presenting** again. OBS keeps capturing the same window.
 
-1. In Chrome, open the OBS URL (the one you copied) and make the window fullscreen with **F11**. It opens straight into presenting mode, showing only the picture.
-2. In OBS add a **Window Capture** source and pick that Chrome window. Turn off **Capture Cursor**.
-3. If you used a transparent, green or dark background, add a **Chroma Key** filter (for green) so the background disappears.
+### Optional: Browser source (only if your OBS allows camera access)
 
-Keep the Chrome window open and un-minimised while streaming.
+You can try adding a **Browser** source with the OBS URL from the panel's **OBS** section. The page shows a red message at the bottom if the camera is blocked. `NotAllowedError` means OBS is blocking it, so use Window Capture. `NotReadableError` means another app is using the camera (close the Chrome tab and other apps, then right-click the source and choose **Refresh cache of current page**).
+If you have several cameras, pick the right one in the **Camera** dropdown and copy the OBS URL again.
 
 ## 4. Use it in Zoom, Meet, Discord or Teams
 
@@ -68,9 +73,8 @@ Keep the Chrome window open and un-minimised while streaming.
 
 ## Changing something later
 
-1. Open `http://localhost:8000/` in Chrome (run `start.bat` first).
-2. Adjust settings, then click **Copy** on the OBS URL.
-3. In OBS, double-click the Browser source and paste the new URL.
+With Window Capture: press **Esc** in the Chrome window, adjust, then click **Start presenting**. Nothing to redo in OBS.
+(With a Browser source you'd need to copy the OBS URL again and paste it into the source.)
 
 ## Troubleshooting
 
@@ -78,14 +82,15 @@ Keep the Chrome window open and un-minimised while streaming.
 |---|---|
 | The page shows a file list instead of the app | The server was started in the wrong folder. Use `start.bat`, or `cd` into the `face-puppet` folder first. |
 | "Camera unavailable" | Another app is using the webcam, or camera permission was blocked. Close other apps and allow the camera in the browser's address-bar icon. |
-| Blank in OBS but works in Chrome | OBS may be blocking the camera: use the Window Capture fallback above. Also check the server window from `start.bat` is still open. |
+| Browser source shows `NotAllowedError` | OBS blocks webcam access in Browser sources. Use Window Capture (step 3). |
+| Window Capture is black | The Chrome window is minimised, or try another *Capture Method* in the source's properties. |
 | Head floats off or is the wrong size | Re-run **Set neutral pose**, then adjust width, height and centering. |
 | The head tilts or turns the wrong way | Toggle **Mirror movement**. |
 | Wink on the wrong eye | Toggle **Swap left/right eyes**. |
 | Mouth barely moves | Raise **Mouth open sensitivity**. |
 | Smile/frown/eyebrows won't trigger | Raise **Expression sensitivity**. Good, even lighting on your face helps a lot. |
 | Head disappears when you look away | It hides when no face has been seen for about half a second. Face the camera again. |
-| Changes made in Chrome don't show in OBS | Copy the OBS URL again and paste it into the OBS source. |
+| Changes made in Chrome don't show in OBS | With a Browser source, copy the OBS URL again. With Window Capture, make sure the window is in presenting mode. |
 | Choppy or laggy | Close other heavy apps and browser tabs. Use a lower camera resolution if needed. |
 
 ## Sprite art summary
