@@ -5,7 +5,11 @@ mouth shapes, head tilt/turn), rendered on one page, ready to drop into OBS.
 
 Tracking uses MediaPipe Face Landmarker (blendshapes + head pose), loaded from CDN. No build step.
 
+**New here? See the [User guide](USER_GUIDE.md) for step-by-step OBS setup.**
+
 ## Run
+
+Double-click `start.bat`, or from a terminal:
 
 ```bash
 python -m http.server 8000
