@@ -43,7 +43,10 @@ Your settings are saved in this browser automatically.
 4. Set **Width** and **Height** to match your camera, usually **1280 x 720** (or 1920 x 1080). In mask or video mode the picture is the camera's shape, so a mismatch will letterbox it.
 5. Click OK. The puppet should appear in the preview.
 
-**Camera access in OBS:** the Browser source needs to open your webcam itself. If it only shows a blank frame, OBS's browser may be blocking camera access. In that case use the fallback below.
+**Camera access in OBS:** the Browser source needs to open your webcam itself, and most webcams can only be used by one app at a time.
+- **Close the Chrome calibration tab** (and any other app using the webcam, like Zoom or the Windows Camera app) before OBS starts the source. Then right-click the source and choose **Refresh cache of current page**.
+- If it still fails, a **red message at the bottom of the picture** says why. `NotReadableError` means the camera is busy. `NotAllowedError` means OBS's browser is blocking camera access; use the fallback below.
+- If you have several cameras, pick the right one in the **Camera** dropdown during calibration, then copy the OBS URL again (the URL then includes the camera name).
 
 ### Fallback: capture the Chrome window instead
 

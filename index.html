@@ -8,6 +8,7 @@
 </head>
 <body data-bg="transparent">
   <main class="stage"><canvas id="puppet"></canvas></main>
+  <div id="errorBanner" hidden></div>
 
   <aside class="panel">
     <h1>Face Puppet <small>calibration</small></h1>
@@ -39,6 +40,7 @@
     <fieldset>
       <legend>Tracking</legend>
       <button id="calibrate">Set neutral pose (C)</button>
+      <label>Camera <select id="cam"></select></label>
       <label class="row"><input type="checkbox" id="mirror"> Mirror movement</label>
       <label class="row"><input type="checkbox" id="swapEyes"> Swap left/right eyes</label>
       <label class="row"><input type="checkbox" id="showCam"> Show raw webcam</label>

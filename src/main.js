@@ -13,6 +13,7 @@ const DEFAULTS = {
   mask: true, headOnly: false, bg: 'video',          // output
   maskW: 1.3, maskH: 1.3, offX: 0, offY: 0,          // mask size (x face) and centering
   mirror: true, swapEyes: false, mouthGain: 1.6, exprGain: 1.5, headGain: 1, showCam: false, // tracking
+  cam: '',                                           // camera label to use ('' = browser default)
   base: [0, 0, 0, 0, 0],                             // neutral pose: yaw, pitch, roll, x, y
 };
 const BOOLS = ['mask', 'headOnly', 'mirror', 'swapEyes', 'showCam'];
@@ -23,6 +24,7 @@ try { settings = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('puppet-setti
 for (const k of BOOLS) if (params.has(k)) settings[k] = params.get(k) === '1';
 for (const k of NUMS) if (params.has(k)) settings[k] = parseFloat(params.get(k));
 if (params.has('bg')) settings.bg = params.get('bg');
+if (params.has('cam')) settings.cam = params.get('cam');
 if (params.has('base')) settings.base = params.get('base').split(',').map(Number);
 
 const save = () => { try { localStorage.setItem('puppet-settings-v2', JSON.stringify(settings)); } catch {} };
@@ -60,6 +62,7 @@ function obsUrl() {
   const q = new URLSearchParams({ present: '1', bg: settings.bg });
   for (const k of BOOLS) q.set(k, settings[k] ? '1' : '0');
   for (const k of NUMS) q.set(k, String(settings[k]));
+  if (settings.cam) q.set('cam', settings.cam);
   q.set('base', settings.base.map(v => +v.toFixed(4)).join(','));
   return `${location.origin}${location.pathname}?${q}`;
 }
@@ -178,6 +181,33 @@ function computePlace(raw, W, H) {
   };
 }
 
+// ---- camera ----
+function showError(msg) {
+  $('status').textContent = msg;
+  $('errorBanner').textContent = msg;
+  $('errorBanner').hidden = false;
+}
+
+// Opens the default camera, fills the Camera dropdown (labels need permission first), then switches to
+// the camera chosen by label if there is one. Matching by label because device ids differ between browsers.
+async function openCamera() {
+  const constraints = id => ({ video: { width: 1280, height: 720, ...(id ? { deviceId: { exact: id } } : {}) }, audio: false });
+  let stream = await navigator.mediaDevices.getUserMedia(constraints());
+  const cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+  const sel = $('cam');
+  sel.innerHTML = '<option value="">Default</option>' + cams.map(d => `<option value="${d.label}">${d.label}</option>`).join('');
+  sel.value = settings.cam;
+  sel.onchange = () => { settings.cam = sel.value; save(); location.reload(); };
+  if (settings.cam) {
+    const want = cams.find(d => d.label.toLowerCase().includes(settings.cam.toLowerCase()));
+    if (want && want.label !== stream.getVideoTracks()[0].label) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = await navigator.mediaDevices.getUserMedia(constraints(want.deviceId));
+    }
+  }
+  return stream;
+}
+
 // ---- boot ----
 const status = $('status');
 async function boot() {
@@ -194,10 +224,13 @@ async function boot() {
 
   const video = $('preview');
   try {
-    video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
+    video.srcObject = await openCamera();
     await video.play();
   } catch (e) {
-    status.textContent = `Camera unavailable: ${e.message}`;
+    const hint = e.name === 'NotAllowedError' ? 'Permission denied. If this is OBS, its browser source may be blocking camera access: use the Window Capture method in USER_GUIDE.md.'
+      : e.name === 'NotReadableError' ? 'The camera is busy. Close the Chrome calibration tab and any other app using the webcam, then refresh the source.'
+      : e.name === 'NotFoundError' ? 'No camera found.' : '';
+    showError(`Camera unavailable (${e.name}: ${e.message}). ${hint}`);
     return;
   }
 
@@ -235,4 +268,4 @@ async function boot() {
     requestAnimationFrame(frame);
   })();
 }
-boot().catch(e => { status.textContent = `Error: ${e.message}`; console.error(e); });
+boot().catch(e => { showError(`Error: ${e.message}`); console.error(e); });

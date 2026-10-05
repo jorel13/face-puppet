@@ -26,3 +26,8 @@ body.clean .stage { background: none; }
 body.clean #puppet { width: 100vw; height: 100vh; max-width: none; max-height: none; object-fit: contain; }
 body.clean[data-bg="green"] { background: #00ff00; }
 body.clean[data-bg="dark"] { background: #111; }
+
+/* Shown only when presenting (the panel's own status line is hidden then), so OBS users can see why it failed */
+#errorBanner { position: fixed; left: 12px; right: 12px; bottom: 12px; padding: 12px 14px; border-radius: 8px;
+  background: rgba(150, 20, 20, 0.92); color: #fff; font-size: 16px; line-height: 1.4; z-index: 10; }
+#errorBanner[hidden], body:not(.clean) #errorBanner { display: none; }
