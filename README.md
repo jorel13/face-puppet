@@ -18,7 +18,7 @@ It needs `localhost` (not `file://`) for the camera and ES modules.
 
 - **Calibration** (default): control panel on the left, live preview with a green guide showing the face the tracker found.
   1. Sit in your normal pose and click **Set neutral pose** (or press **C**).
-  2. Adjust **Size** and **Shift** so the head covers your face the way you want.
+  2. Adjust **Head width**, **Head height** and **Center** left/right/up/down so the head covers your face the way you want.
   3. Check mouth sensitivity by talking.
 - **Presenting**: click **Start presenting** (or open the URL with `?present`). Only the picture is shown. **Esc** or double-click returns to calibration.
 

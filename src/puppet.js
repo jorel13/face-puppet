@@ -20,10 +20,33 @@ export async function loadSprites() {
     PLACEHOLDERS[id]?.(c.getContext('2d'));
     sprites.set(id, c);
   }));
-  return { sprites, missing };
+  return { sprites, missing, headBox: measureHead(sprites.get('head')) };
 }
 
-export function createPuppet(canvas, sprites) {
+// Bounding box of the opaque pixels in head.png, so mask mode fits whatever head you drew.
+// Falls back to the HEAD default in config.js if the pixels can't be read.
+function measureHead(img) {
+  try {
+    const c = document.createElement('canvas');
+    c.width = CANVAS.w; c.height = CANVAS.h;
+    const g = c.getContext('2d');
+    g.drawImage(img, 0, 0, CANVAS.w, CANVAS.h);
+    const d = g.getImageData(0, 0, CANVAS.w, CANVAS.h).data;
+    let x0 = CANVAS.w, y0 = CANVAS.h, x1 = -1, y1 = -1;
+    for (let y = 0; y < CANVAS.h; y++) {
+      for (let x = 0; x < CANVAS.w; x++) {
+        if (d[(y * CANVAS.w + x) * 4 + 3] > 16) {
+          if (x < x0) x0 = x; if (x > x1) x1 = x;
+          if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+      }
+    }
+    if (x1 < 0) return HEAD;
+    return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+  } catch { return HEAD; }
+}
+
+export function createPuppet(canvas, sprites, headBox = HEAD) {
   const ctx = canvas.getContext('2d');
 
   function resize(w, h) {
@@ -33,7 +56,7 @@ export function createPuppet(canvas, sprites) {
   // state: { visible, headOnly, blinkL, blinkR, mouth, brows, gaze:{x,y}, yaw, pitch, roll, dx, dy }
   // opts:  { video, mirror, place, guide }
   //   video  - element drawn as the background (mirrored if opts.mirror)
-  //   place  - { cx, cy, scale, roll } puts the head on the face (mask mode); null = centred avatar
+  //   place  - { cx, cy, sx, sy, roll } puts the head on the face (mask mode); null = centred avatar
   //   guide  - same shape, plus w/h; draws a calibration outline
   function draw(s, { video = null, mirror = false, place = null, guide = null } = {}) {
     const W = canvas.width, H = canvas.height;
@@ -50,8 +73,8 @@ export function createPuppet(canvas, sprites) {
       if (place) {
         ctx.translate(place.cx, place.cy);
         ctx.rotate(place.roll);
-        ctx.scale(place.scale, place.scale);
-        ctx.translate(-HEAD.cx, -HEAD.cy);
+        ctx.scale(place.sx, place.sy);   // width and height scale independently
+        ctx.translate(-headBox.cx, -headBox.cy);
       } else {
         const sc = H / CANVAS.h;
         ctx.translate((W - CANVAS.w * sc) / 2, 0);

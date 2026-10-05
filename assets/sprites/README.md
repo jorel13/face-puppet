@@ -9,7 +9,7 @@ Left/right means **screen left/right** (the character's right eye is on screen-l
 
 Reference layout used by the placeholders (adjust freely, but keep every part aligned to the same canvas):
 eyes at about y=440 (x=400 and x=624), nose ~y=520, mouth ~y=650, neck base ~y=780.
-The head's centre and size (`HEAD` in `src/config.js`, currently centre 512,490, 600 wide, 680 tall) is how mask mode fits the sprite onto your face. If your head is drawn elsewhere or at a different size, tell me and I'll update it (or edit it yourself).
+Draw the head at any size or position. The app measures the opaque area of `head.png` and fits that to your face, and you fine-tune width, height and centering with the sliders. Just keep every other part aligned to the same canvas as the head.
 
 ## Tier 1: minimum (talks and blinks)
 | File | What it is |

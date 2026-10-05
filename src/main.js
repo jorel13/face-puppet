@@ -1,6 +1,7 @@
 import { loadSprites, createPuppet } from './puppet.js';
 import { createTracker } from './tracker.js';
 import { CANVAS, HEAD } from './config.js';
+let headBox = HEAD;   // measured from head.png at boot
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -10,12 +11,12 @@ const params = new URLSearchParams(location.search);
 // so "Copy OBS URL" bakes every setting (including the calibrated neutral pose) into the URL.
 const DEFAULTS = {
   mask: true, headOnly: false, bg: 'video',          // output
-  maskScale: 1.3, offX: 0, offY: 0,                  // mask alignment
+  maskW: 1.3, maskH: 1.3, offX: 0, offY: 0,          // mask size (x face) and centering
   mirror: true, swapEyes: false, mouthGain: 1, headGain: 1, showCam: false, // tracking
   base: [0, 0, 0, 0, 0],                             // neutral pose: yaw, pitch, roll, x, y
 };
 const BOOLS = ['mask', 'headOnly', 'mirror', 'swapEyes', 'showCam'];
-const NUMS = ['maskScale', 'offX', 'offY', 'mouthGain', 'headGain'];
+const NUMS = ['maskW', 'maskH', 'offX', 'offY', 'mouthGain', 'headGain'];
 
 let settings = { ...DEFAULTS };
 try { settings = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('puppet-settings') || '{}') }; } catch {}
@@ -77,7 +78,7 @@ const above = (v, t, active, h = 0.04) => v > (active ? t - h : t + h);
 // ---- state ----
 const smooth = { jaw: 0, funnel: 0, pucker: 0, smile: 0, blinkL: 0, blinkR: 0, browUp: 0, browDown: 0,
                  lookX: 0, lookY: 0, yaw: 0, pitch: 0, roll: 0, x: 0, y: 0,
-                 pcx: 0, pcy: 0, pscale: 1, proll: 0 };
+                 pcx: 0, pcy: 0, pw: 1, ph: 1, proll: 0 };
 const puppetState = { visible: true, headOnly: false, blinkL: false, blinkR: false, mouth: 'closed',
                       brows: 'neutral', gaze: { x: 0, y: 0 }, yaw: 0, pitch: 0, roll: 0, dx: 0, dy: 0 };
 let lastRaw = null;
@@ -144,19 +145,19 @@ function computePlace(raw, W, H) {
     const cx = (a.x + b.x + t.x + c.x) / 4, cy = (a.y + b.y + t.y + c.y) / 4;
     const roll = Math.atan2(q.y - p.y, q.x - p.x);
     const k = placeInit ? 0.5 : 1;                 // snap on first sighting, then smooth
-    ema('pcx', cx, k); ema('pcy', cy, k); ema('pscale', (fw / HEAD.w + fh / HEAD.h) / 2, k); ema('proll', roll, k);
+    ema('pcx', cx, k); ema('pcy', cy, k); ema('pw', fw / headBox.w, k); ema('ph', fh / headBox.h, k); ema('proll', roll, k);
     placeInit = true;
     smooth.fw = fw; smooth.fh = fh;
   }
   if (!placeInit) return null;
-  const sc = smooth.pscale * settings.maskScale;
   // User offset is in face widths/heights, rotated with the head so "up" stays up along the face.
   const ox = settings.offX * (smooth.fw ?? 0), oy = settings.offY * (smooth.fh ?? 0);
   const cos = Math.cos(smooth.proll), sin = Math.sin(smooth.proll);
   return {
     cx: smooth.pcx + ox * cos - oy * sin,
     cy: smooth.pcy + ox * sin + oy * cos,
-    scale: sc,
+    sx: smooth.pw * settings.maskW,
+    sy: smooth.ph * settings.maskH,
     roll: smooth.proll,
     guide: { cx: smooth.pcx, cy: smooth.pcy, w: smooth.fw ?? 0, h: smooth.fh ?? 0, roll: smooth.proll },
   };
@@ -166,8 +167,9 @@ function computePlace(raw, W, H) {
 const status = $('status');
 async function boot() {
   status.textContent = 'Loading sprites…';
-  const { sprites, missing } = await loadSprites();
-  const puppet = createPuppet($('puppet'), sprites);
+  const { sprites, missing, headBox: hb } = await loadSprites();
+  headBox = hb;
+  const puppet = createPuppet($('puppet'), sprites, headBox);
   puppet.resize(CANVAS.w, CANVAS.h);
   puppet.draw(puppetState);
   status.textContent = missing.length
