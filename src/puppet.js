@@ -1,6 +1,11 @@
 import { CANVAS, HEAD, PIVOT, PARALLAX, GAZE_PX, LAYERS } from './config.js';
 import { PLACEHOLDERS } from './placeholders.js';
 
+// Layers you can leave out. Once you have a real head.png, a missing optional layer is simply not
+// drawn, so placeholder pupils/hair/etc. never appear on top of your own art.
+const OPTIONAL = new Set(['pupil_l', 'pupil_r', 'cheeks', 'hair_back', 'hair_front', 'neck', 'body',
+  'brows_neutral', 'brows_raised', 'brows_furrowed']);
+
 // Loads every sprite PNG; a missing file falls back to its procedural placeholder
 // (rendered once into an offscreen canvas so drawing stays cheap).
 export async function loadSprites() {
@@ -14,14 +19,19 @@ export async function loadSprites() {
       im.onerror = () => resolve(null);
       im.src = `assets/sprites/${id}.png`;
     });
-    if (img) { sprites.set(id, img); real.add(id); return; }
-    missing.push(id);
+    if (img) { sprites.set(id, img); real.add(id); }
+    else missing.push(id);
+  }));
+  const hasRealArt = real.has('head');
+  for (const id of missing) {
+    if (hasRealArt && OPTIONAL.has(id)) { sprites.set(id, null); continue; }
     const c = document.createElement('canvas');
     c.width = CANVAS.w; c.height = CANVAS.h;
     PLACEHOLDERS[id]?.(c.getContext('2d'));
     sprites.set(id, c);
-  }));
-  return { sprites, missing, real, headBox: measureHead(sprites.get('head')) };
+  }
+  return { sprites, missing: missing.filter(id => !(hasRealArt && OPTIONAL.has(id))), real,
+           headBox: measureHead(sprites.get('head')) };
 }
 
 // Bounding box of the opaque pixels in head.png, so mask mode fits whatever head you drew.
@@ -33,16 +43,22 @@ function measureHead(img) {
     const g = c.getContext('2d');
     g.drawImage(img, 0, 0, CANVAS.w, CANVAS.h);
     const d = g.getImageData(0, 0, CANVAS.w, CANVAS.h).data;
-    let x0 = CANVAS.w, y0 = CANVAS.h, x1 = -1, y1 = -1;
+    // Count opaque pixels per column/row and ignore thin strips (stray marks, thin wisps): only
+    // columns/rows with a solid amount of head in them define the box.
+    const cols = new Uint16Array(CANVAS.w), rows = new Uint16Array(CANVAS.h);
     for (let y = 0; y < CANVAS.h; y++) {
       for (let x = 0; x < CANVAS.w; x++) {
-        if (d[(y * CANVAS.w + x) * 4 + 3] > 16) {
-          if (x < x0) x0 = x; if (x > x1) x1 = x;
-          if (y < y0) y0 = y; if (y > y1) y1 = y;
-        }
+        if (d[(y * CANVAS.w + x) * 4 + 3] > 16) { cols[x]++; rows[y]++; }
       }
     }
-    if (x1 < 0) return HEAD;
+    const MIN = 60;
+    const span = counts => {
+      let a = -1, b = -1;
+      counts.forEach((n, i) => { if (n >= MIN) { if (a < 0) a = i; b = i; } });
+      return [a, b];
+    };
+    const [x0, x1] = span(cols), [y0, y1] = span(rows);
+    if (x1 < 0 || y1 < 0) return HEAD;
     return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0 + 1, h: y1 - y0 + 1 };
   } catch { return HEAD; }
 }

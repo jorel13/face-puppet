@@ -12,15 +12,15 @@ eyes at about y=440 (x=400 and x=624), nose ~y=520, mouth ~y=650, neck base ~y=7
 Draw the head at any size or position. The app measures the opaque area of `head.png` and fits that to your face, and you fine-tune width, height and centering with the sliders. Just keep every other part aligned to the same canvas as the head.
 
 ## Tier 1: minimum (talks and blinks)
-| File | What it is |
-|---|---|
-| `head.png` | Head/face with **no** eyes, brows, nose or mouth drawn on it (skin, ears, outline). **No neck.** This is the part that covers your face in mask mode, so the shape should be a bit bigger than a real face. |
-| `eye_l_open.png`, `eye_r_open.png` | Open eye (white + iris/pupil if you are skipping separate pupils). |
-| `eye_l_closed.png`, `eye_r_closed.png` | Closed eye (lash line / lid). |
-| `mouth_closed.png` | Mouth at rest. |
-| `mouth_small.png` | Slightly open ("m/b" to "uh"). |
-| `mouth_mid.png` | Half open ("eh"). |
-| `mouth_wide.png` | Fully open ("ah"), teeth/tongue if you like. |
+| File                                   | What it is                                                                                                                                                                                                  |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `head.png`                             | Head/face with **no** eyes, brows, nose or mouth drawn on it (skin, ears, outline). **No neck.** This is the part that covers your face in mask mode, so the shape should be a bit bigger than a real face. |
+| `eye_l_open.png`, `eye_r_open.png`     | Open eye (white + iris/pupil if you are skipping separate pupils).                                                                                                                                          |
+| `eye_l_closed.png`, `eye_r_closed.png` | Closed eye (lash line / lid).                                                                                                                                                                               |
+| `mouth_closed.png`                     | Mouth at rest.                                                                                                                                                                                              |
+| `mouth_small.png`                      | Slightly open ("m/b" to "uh").                                                                                                                                                                              |
+| `mouth_mid.png`                        | Half open ("eh").                                                                                                                                                                                           |
+| `mouth_wide.png`                       | Fully open ("ah"), teeth/tongue if you like.                                                                                                                                                                |
 
 ## Tier 2: recommended (expression)
 | File | What it is |
