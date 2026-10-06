@@ -14,7 +14,7 @@ const DEFAULTS = {
   maskW: 1.3, maskH: 1.3, offX: 0, offY: 0,          // mask size (x face) and centering
   mirror: true, swapEyes: false, mouthGain: 1.6, exprGain: 1.5, headGain: 1, showCam: false, // tracking
   cam: '',                                           // camera label to use ('' = browser default)
-  base: [0, 0, 0, 0, 0],                             // neutral pose: yaw, pitch, roll, x, y
+  base: [0, 0, 0, 0, 0, 0],                          // neutral pose: yaw, pitch, roll, x, y, resting mouth openness
 };
 const BOOLS = ['mask', 'headOnly', 'mirror', 'swapEyes', 'showCam'];
 const NUMS = ['maskW', 'maskH', 'offX', 'offY', 'mouthGain', 'exprGain', 'headGain'];
@@ -88,11 +88,13 @@ let lastRaw = null;
 let lastSeen = 0;
 let placeInit = false;
 let splitBrows = true;   // set at boot from which brow sprites exist
+let mouthSince = 0;
+const MOUTH_HOLD_MS = 90;
 
 function ema(key, target, a) { smooth[key] = lerp(smooth[key], target, a); return smooth[key]; }
 
 function update(raw) {
-  const [byaw, bpitch, broll, bx, by] = settings.base;
+  const [byaw, bpitch, broll, bx, by, bjaw = 0] = settings.base;
   // Face lost: ease everything back to neutral.
   const f = raw ?? { blend: {}, yaw: byaw, pitch: bpitch, roll: broll, x: bx, y: by };
   const b = f.blend;
@@ -100,7 +102,12 @@ function update(raw) {
   const swap = settings.swapEyes;
 
   // Mouth/blink respond fast; pose a bit slower to hide tracker jitter.
-  const jaw = ema('jaw', Math.min(1, (b.jawOpen ?? 0) * settings.mouthGain), 0.6);
+  // Openness = the larger of jaw drop and lower-lip drop (lips move on "ee"/"mm" even when the jaw barely does),
+  // minus the resting value captured at calibration, times the sensitivity slider.
+  const rawOpen = Math.max(b.jawOpen ?? 0, ((b.mouthLowerDownLeft ?? 0) + (b.mouthLowerDownRight ?? 0)) / 2 * 0.8);
+  const openness = Math.min(1, Math.max(0, rawOpen - bjaw) * settings.mouthGain);
+  // Instant attack so a 1-2 frame syllable still registers; slower release so it doesn't flutter.
+  const jaw = smooth.jaw = openness > smooth.jaw ? openness : lerp(smooth.jaw, openness, 0.45);
   const funnel = ema('funnel', b.mouthFunnel ?? 0, 0.5);
   const pucker = ema('pucker', b.mouthPucker ?? 0, 0.5);
   const eg = settings.exprGain;
@@ -132,6 +139,15 @@ function update(raw) {
   else if (calm && above(frown, 0.2, was === 'frown')) s.mouth = 'frown';
   else if (above(jaw, 0.045, was === 'small', 0.015)) s.mouth = 'small';
   else s.mouth = 'closed';
+
+  // A shape that opened keeps showing for a minimum time, so quick syllables are visible on screen even
+  // when the camera only caught them for a frame or two. Opening more is always immediate.
+  const openRank = { closed: 0, small: 1, mid: 2, o: 2, wide: 3, smile: 0, frown: 0 };
+  const now = performance.now();
+  if (s.mouth !== was) {
+    if (openRank[was] > 0 && openRank[s.mouth] < openRank[was] && now - mouthSince < MOUTH_HOLD_MS) s.mouth = was;
+    else mouthSince = now;
+  }
 
   const browState = (rz, dn, cur) => above(dn, 0.3, cur === 'furrowed') ? 'furrowed'
                                    : above(rz, 0.25, cur === 'raised') ? 'raised' : 'neutral';
@@ -191,7 +207,7 @@ function showError(msg) {
 // Opens the default camera, fills the Camera dropdown (labels need permission first), then switches to
 // the camera chosen by label if there is one. Matching by label because device ids differ between browsers.
 async function openCamera() {
-  const constraints = id => ({ video: { width: 1280, height: 720, ...(id ? { deviceId: { exact: id } } : {}) }, audio: false });
+  const constraints = id => ({ video: { width: 1280, height: 720, frameRate: { ideal: 60 }, ...(id ? { deviceId: { exact: id } } : {}) }, audio: false });
   let stream = await navigator.mediaDevices.getUserMedia(constraints());
   const cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
   const sel = $('cam');
@@ -239,7 +255,9 @@ async function boot() {
 
   $('calibrate').onclick = () => {
     if (!lastRaw) return;
-    settings.base = [lastRaw.yaw, lastRaw.pitch, lastRaw.roll, lastRaw.x, lastRaw.y];
+    // Last value is your resting mouth openness (capped, in case you calibrate mid-word).
+    const restOpen = Math.min(0.05, Math.max(lastRaw.blend.jawOpen ?? 0, ((lastRaw.blend.mouthLowerDownLeft ?? 0) + (lastRaw.blend.mouthLowerDownRight ?? 0)) / 2 * 0.8));
+    settings.base = [lastRaw.yaw, lastRaw.pitch, lastRaw.roll, lastRaw.x, lastRaw.y, restOpen];
     save(); applyDom();
   };
   window.addEventListener('keydown', e => { if (e.key.toLowerCase() === 'c' && !e.target.matches?.('input')) $('calibrate').click(); });
@@ -265,6 +283,7 @@ async function boot() {
       place,
       guide: settings.mask && calibrating && lastRaw ? place?.guide : null,
     });
+    if (calibrating) $('mouthBar').style.width = `${Math.min(1, smooth.jaw) * 100}%`;
     requestAnimationFrame(frame);
   })();
 }

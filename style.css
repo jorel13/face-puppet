@@ -31,3 +31,8 @@ body.clean[data-bg="dark"] { background: #111; }
 #errorBanner { position: fixed; left: 12px; right: 12px; bottom: 12px; padding: 12px 14px; border-radius: 8px;
   background: rgba(150, 20, 20, 0.92); color: #fff; font-size: 16px; line-height: 1.4; z-index: 10; }
 #errorBanner[hidden], body:not(.clean) #errorBanner { display: none; }
+
+/* Live mouth-openness meter in the Tracking section */
+.meter { position: relative; height: 10px; border-radius: 5px; background: #1e1e24; overflow: hidden; }
+.meter #mouthBar { height: 100%; width: 0; background: #5b7cfa; }
+.meter i { position: absolute; top: 0; bottom: 0; width: 1px; background: #aab; opacity: 0.6; }
