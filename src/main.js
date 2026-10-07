@@ -162,10 +162,12 @@ function update(raw) {
   s.gaze.x = lookX * m; s.gaze.y = lookY;
 
   const g = settings.headGain;
-  s.yaw = ema('yaw', (f.yaw - byaw) * m * g, 0.35);
+  // The tracker reports pose as seen in the raw (un-mirrored) camera image. A mirrored display flips left/right,
+  // so turn direction, tilt and sideways position need the opposite sign when mirrored (m = 1).
+  s.yaw = ema('yaw', -(f.yaw - byaw) * m * g, 0.35);
   s.pitch = ema('pitch', (f.pitch - bpitch) * g, 0.35);
-  s.roll = ema('roll', (f.roll - broll) * -m * g, 0.35);
-  s.dx = ema('x', (f.x - bx) * m * 6 * g, 0.3);   // cm -> px (avatar mode only)
+  s.roll = ema('roll', (f.roll - broll) * m * g, 0.35);
+  s.dx = ema('x', -(f.x - bx) * m * 6 * g, 0.3);   // cm -> px (avatar mode only)
   s.dy = ema('y', -(f.y - by) * 6 * g, 0.3);
   if (settings.mask) { s.roll = 0; s.dx = 0; s.dy = 0; }  // mask mode takes position/roll from the face itself
 }
