@@ -29,7 +29,7 @@ The page opens in **calibration mode**: control panel on the left, picture on th
 4. In **Mask size & centering**, use **Head width**, **Head height** and **Center left/right/up/down** until the head covers your face. The dashed green oval shows the face the tracker found.
 5. Test your expressions and adjust:
    - **Mouth open sensitivity**: raise it if the mouth barely opens when you talk.
-   - **Expression sensitivity**: raise it for easier smiles, frowns and eyebrow raises.
+   - **Brow / Frown / Smile sensitivity**: raise the matching one if that expression is hard to trigger.
    - **Head motion**: how much the features slide when you turn or tilt your head.
 6. If movements look backwards, toggle **Mirror movement**. If a wink happens on the wrong eye, toggle **Swap left/right eyes**.
 
@@ -104,7 +104,7 @@ With Window Capture: press **Esc** in the Chrome window, adjust, then click **St
 | The head tilts or turns the wrong way | Toggle **Mirror movement**. |
 | Wink on the wrong eye | Toggle **Swap left/right eyes**. |
 | Mouth misses some words | Click **Set neutral pose** with your mouth relaxed (this sets the resting level), then raise **Mouth open sensitivity**. The blue meter under the slider shows what the tracker sees: it should cross the first tick on every syllable. Good, even lighting helps the camera run at a full frame rate. |
-| Smile/eyebrows won't trigger | Raise **Expression sensitivity**. For frowns raise **Frown sensitivity**. Good, even lighting on your face helps a lot. |
+| Smile, eyebrows or frown won't trigger | Raise **Smile sensitivity**, **Brow sensitivity** or **Frown sensitivity** (each has its own slider). Good, even lighting on your face helps a lot. |
 | Head disappears when you look away | It hides when no face has been seen for about half a second. Face the camera again. |
 | Changes made in Chrome don't show in OBS | With a Browser source, copy the OBS URL again. With Window Capture, make sure the window is in presenting mode. |
 | Choppy or laggy | Close other heavy apps and browser tabs. Use a lower camera resolution if needed. |

@@ -12,12 +12,12 @@ const params = new URLSearchParams(location.search);
 const DEFAULTS = {
   mask: true, headOnly: false, bg: 'video',          // output
   maskW: 1.3, maskH: 1.3, offX: 0, offY: 0,          // mask size (x face) and centering
-  mirror: true, swapEyes: false, mouthGain: 1.6, exprGain: 1.5, frownGain: 3, headGain: 1, showCam: false, // tracking
+  mirror: true, swapEyes: false, mouthGain: 1.6, exprGain: 1.5, frownGain: 3, browGain: 1.5, headGain: 1, showCam: false, // tracking
   cam: '',                                           // camera label to use ('' = browser default)
   base: [0, 0, 0, 0, 0, 0],                          // neutral pose: yaw, pitch, roll, x, y, resting mouth openness
 };
 const BOOLS = ['mask', 'headOnly', 'mirror', 'swapEyes', 'showCam'];
-const NUMS = ['maskW', 'maskH', 'offX', 'offY', 'mouthGain', 'exprGain', 'frownGain', 'headGain'];
+const NUMS = ['maskW', 'maskH', 'offX', 'offY', 'mouthGain', 'exprGain', 'frownGain', 'browGain', 'headGain'];
 
 let settings = { ...DEFAULTS };
 try { settings = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('puppet-settings-v2') || '{}') }; } catch {}
@@ -117,8 +117,8 @@ function update(raw) {
   const br = ema('blinkR', b[swap ? 'eyeBlinkLeft' : 'eyeBlinkRight'] ?? 0, 0.7);
   // Brows per side so one can cock alone. Inner-up is shared by both brows, so it only counts half.
   const sideL = swap ? 'Right' : 'Left', sideR = swap ? 'Left' : 'Right';
-  const raise = side => Math.min(1, eg * ((b['browOuterUp' + side] ?? 0) + (b.browInnerUp ?? 0) * 0.5));
-  const down = side => Math.min(1, eg * (b['browDown' + side] ?? 0));
+  const raise = side => Math.min(1, settings.browGain * ((b['browOuterUp' + side] ?? 0) + (b.browInnerUp ?? 0) * 0.5));
+  const down = side => Math.min(1, settings.browGain * (b['browDown' + side] ?? 0));
   const raiseL = ema('browRaiseL', raise(sideL), 0.5), raiseR = ema('browRaiseR', raise(sideR), 0.5);
   const downL = ema('browDownL', down(sideL), 0.5), downR = ema('browDownR', down(sideR), 0.5);
   const lookX = ema('lookX', ((b.eyeLookOutLeft ?? 0) + (b.eyeLookInRight ?? 0) - (b.eyeLookInLeft ?? 0) - (b.eyeLookOutRight ?? 0)) / 2, 0.4);
