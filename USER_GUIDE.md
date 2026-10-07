@@ -104,7 +104,7 @@ With Window Capture: press **Esc** in the Chrome window, adjust, then click **St
 | The head tilts or turns the wrong way | Toggle **Mirror movement**. |
 | Wink on the wrong eye | Toggle **Swap left/right eyes**. |
 | Mouth misses some words | Click **Set neutral pose** with your mouth relaxed (this sets the resting level), then raise **Mouth open sensitivity**. The blue meter under the slider shows what the tracker sees: it should cross the first tick on every syllable. Good, even lighting helps the camera run at a full frame rate. |
-| Smile/frown/eyebrows won't trigger | Raise **Expression sensitivity**. Good, even lighting on your face helps a lot. |
+| Smile/eyebrows won't trigger | Raise **Expression sensitivity**. For frowns raise **Frown sensitivity**. Good, even lighting on your face helps a lot. |
 | Head disappears when you look away | It hides when no face has been seen for about half a second. Face the camera again. |
 | Changes made in Chrome don't show in OBS | With a Browser source, copy the OBS URL again. With Window Capture, make sure the window is in presenting mode. |
 | Choppy or laggy | Close other heavy apps and browser tabs. Use a lower camera resolution if needed. |

@@ -12,12 +12,12 @@ const params = new URLSearchParams(location.search);
 const DEFAULTS = {
   mask: true, headOnly: false, bg: 'video',          // output
   maskW: 1.3, maskH: 1.3, offX: 0, offY: 0,          // mask size (x face) and centering
-  mirror: true, swapEyes: false, mouthGain: 1.6, exprGain: 1.5, headGain: 1, showCam: false, // tracking
+  mirror: true, swapEyes: false, mouthGain: 1.6, exprGain: 1.5, frownGain: 3, headGain: 1, showCam: false, // tracking
   cam: '',                                           // camera label to use ('' = browser default)
   base: [0, 0, 0, 0, 0, 0],                          // neutral pose: yaw, pitch, roll, x, y, resting mouth openness
 };
 const BOOLS = ['mask', 'headOnly', 'mirror', 'swapEyes', 'showCam'];
-const NUMS = ['maskW', 'maskH', 'offX', 'offY', 'mouthGain', 'exprGain', 'headGain'];
+const NUMS = ['maskW', 'maskH', 'offX', 'offY', 'mouthGain', 'exprGain', 'frownGain', 'headGain'];
 
 let settings = { ...DEFAULTS };
 try { settings = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('puppet-settings-v2') || '{}') }; } catch {}
@@ -112,7 +112,7 @@ function update(raw) {
   const pucker = ema('pucker', b.mouthPucker ?? 0, 0.5);
   const eg = settings.exprGain;
   const smile = ema('smile', Math.min(1, eg * ((b.mouthSmileLeft ?? 0) + (b.mouthSmileRight ?? 0)) / 2), 0.5);
-  const frown = ema('frown', Math.min(1, eg * ((b.mouthFrownLeft ?? 0) + (b.mouthFrownRight ?? 0)) / 2), 0.5);
+  const frown = ema('frown', Math.min(1, settings.frownGain * ((b.mouthFrownLeft ?? 0) + (b.mouthFrownRight ?? 0)) / 2), 0.5);
   const bl = ema('blinkL', b[swap ? 'eyeBlinkRight' : 'eyeBlinkLeft'] ?? 0, 0.7);
   const br = ema('blinkR', b[swap ? 'eyeBlinkLeft' : 'eyeBlinkRight'] ?? 0, 0.7);
   // Brows per side so one can cock alone. Inner-up is shared by both brows, so it only counts half.
@@ -131,12 +131,14 @@ function update(raw) {
 
   // Thresholds are deliberately low: ordinary speech only opens jawOpen to ~0.1-0.4.
   const was = s.mouth;
-  const calm = jaw < 0.1;   // closed-ish mouth, so smile/frown shapes apply
+  // Closed-ish mouth, so smile/frown shapes apply. Judged on the raw (un-boosted) openness, so turning the
+  // mouth-sensitivity slider up for speech doesn't stop smiles and frowns from showing.
+  const calm = Math.max(0, rawOpen - bjaw) < 0.08;
   if (above(funnel + pucker, 0.35, was === 'o') && jaw > 0.04) s.mouth = 'o';
   else if (above(jaw, 0.32, was === 'wide')) s.mouth = 'wide';
   else if (above(jaw, 0.14, was === 'mid' || was === 'wide', 0.02)) s.mouth = 'mid';
   else if (calm && above(smile, 0.3, was === 'smile')) s.mouth = 'smile';
-  else if (calm && above(frown, 0.2, was === 'frown')) s.mouth = 'frown';
+  else if (calm && above(frown, 0.15, was === 'frown')) s.mouth = 'frown';
   else if (above(jaw, 0.045, was === 'small', 0.015)) s.mouth = 'small';
   else s.mouth = 'closed';
 
