@@ -46,3 +46,8 @@ Missing sprites render as placeholders.
 - `src/config.js`: canvas size, rotation pivot, parallax and gaze range, layer order.
 - `src/main.js` `update()`: thresholds that turn blendshapes into mouth/brow/blink states.
 - If a wink is on the wrong eye, tick **Swap left/right eyes**. If the head turns the wrong way, untick **Mirror movement**.
+
+## License
+
+[MIT](LICENSE). The MediaPipe Face Landmarker library and model are loaded from a CDN and are covered by their own
+license (Apache 2.0). Any character art you add to `assets/sprites/` is yours and is not part of this license.
