@@ -66,6 +66,22 @@ If you have several cameras, pick the right one in the **Camera** dropdown and c
 1. In OBS click **Start Virtual Camera**.
 2. In your call app, choose **OBS Virtual Camera** as the camera.
 
+## Using it in a browser call (Discord, Meet, Teams)
+
+Two things go wrong if you run everything in one browser:
+
+- **Camera conflict.** Your real webcam can usually only be opened by one app at a time. Only the Face Puppet window should ever use it.
+- **Freezing.** Browsers pause windows that are hidden behind other windows (and background tabs). When you switch to your call, the puppet window stops animating, so OBS captures a frozen picture.
+
+The setup that avoids both:
+
+1. Double-click **`start-presenter.bat`** instead of `start.bat`. It opens Face Puppet in its **own Edge instance** (separate from your normal Edge, in a plain window with no tabs) with the hidden-window pausing turned off. Allow the camera the first time, calibrate, then click **Start presenting**. (This instance keeps its own settings, so calibrate again the first time.)
+2. In OBS, use **Window Capture** on that window (step 3), then **Start Virtual Camera**.
+3. Join your call in your **normal** Edge window, Firefox, or the Discord app. In the call's camera settings choose **OBS Virtual Camera**. Never the real webcam, since the puppet window already has it. Start the virtual camera *before* opening or reloading the call page so the browser sees it.
+4. Keep the puppet window open and not minimised. It can sit behind your call window.
+
+If the puppet still freezes when covered, move it to a second monitor, or put the two windows side by side.
+
 ## Presenting mode and calibration mode
 
 - **Start presenting** hides the panel and shows only the picture. This is what the OBS URL opens straight into.
