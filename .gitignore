@@ -2,3 +2,6 @@ node_modules/
 .DS_Store
 Thumbs.db
 .presenter-profile/
+
+# Your own character art stays local. Remove this line if you want to commit your sprites.
+assets/sprites/*.png

@@ -1,5 +1,7 @@
 # Sprite spec
 
+> Your PNGs in this folder are listed in `.gitignore`, so they stay on your computer and are never committed or published. Without any PNGs, the app draws simple placeholder shapes.
+
 **Every file: PNG, exactly 1024 x 1024 px, transparent background.**
 Each part is drawn already in its final position on the full canvas (like Photoshop layers exported at
 full canvas size). The code never offsets parts, it just stacks them. Any missing file falls back to a
